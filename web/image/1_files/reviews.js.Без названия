@@ -1,0 +1,70 @@
+$(function() {
+
+	$('body').on("submit", "form.review-form", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="email"]').removeClass('error');
+		$(this).find('textarea[name="message"]').removeClass('error');
+
+		$(this).find('div.error-text').remove();
+
+		var error = false;
+
+
+		var pattern = /^[а-яА-ЯёЁa-zA-Z\ ]+$/i;
+		if ($(this).find('input[name="name"]').val() == "" || !pattern.test($(this).find('input[name="name"]').val())) {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		var pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
+		if ($(this).find('input[name="email"]').val() == "" || !pattern.test($(this).find('input[name="email"]').val())) {
+			$(this).find('input[name="email"]').addClass('error');
+			$(this).find('input[name="email"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+			error = true;
+		} else {
+			$(this).find('input[name="email"]').addClass('success');
+		}
+
+		if ($(this).find('textarea[name="message"]').val() == "") {
+			$(this).find('textarea[name="message"]').addClass('error');
+			$(this).find('textarea[name="message"]').parent().append('<div class="error-text">Нужно что-то написать</div>');
+
+			error = true;
+		} else {
+			$(this).find('textarea[name="message"]').addClass('success');
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+
+		var name = $(this).find('input[name="name"]').val();
+		var message = $(this).find('textarea[name="message"]').val();
+		var rate = $(this).find('select[name="rate"]').val();
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('body').append('<div class="wrap-popup popup-addcomment" id="popup-addcomment" style="display: block;"><div class="popup-container"><div class="popup-icon"><i class="icon icon-adv-check"></i></div><div class="popup-content"><div class="popup-benefits__text"><div class="popup-benefits__text"><p>Спасибо, Ваш отзыв добавлен! Он появится через несколько минут.</p></div></div></div><span class="close">Х</span></div><div class="wrap-popup-bg"></div></div>');
+				$('.review-form').remove();
+			} else {
+				$('body').append('<div class="wrap-popup popup-addcomment" id="popup-addcomment" style="display: block;"><div class="popup-container"><div class="popup-content"><div class="popup-benefits__text"><div class="popup-benefits__text"><p>Ошибка отправки формы</p></div></div></div><span class="close">Х</span></div><div class="wrap-popup-bg"></div></div>');
+			}
+		});
+
+	});
+});

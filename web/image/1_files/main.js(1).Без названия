@@ -1,0 +1,1588 @@
+$(function() {
+
+	// fix filter
+	/*
+	 if( navigator.userAgent.match(/Android/i)
+	 || navigator.userAgent.match(/webOS/i)
+	 || navigator.userAgent.match(/iPhone/i)
+	 || navigator.userAgent.match(/iPad/i)
+	 || navigator.userAgent.match(/iPod/i)
+	 || navigator.userAgent.match(/BlackBerry/i)
+	 || navigator.userAgent.match(/Windows Phone/i)
+	 ) {
+		$('div.filter-box__value').css('display','none');
+		$('.filter-box__title').removeClass('open-f-b');
+	 }
+
+	resizeFilterFix();
+
+	function resizeFilterFix() {
+		width = Math.max($(window).width(), window.innerWidth);
+
+		if (width < 1000) {
+			$('div.filter-box__value').css('display','none');
+			$('.filter-box__title').removeClass('open-f-b');
+		}
+
+	}
+
+	$(window).on("resize orientationchange", function(e) {
+		resizeFilterFix();
+	});
+	*/
+
+	$('a.show-video').on('click', function (ev) {
+		ev.preventDefault();
+
+		var video = $(this).data('video');
+
+		$.showYtVideo({
+			videoId: video
+		});
+	});
+
+	$('body').on("submit", "form.feedback-error", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="email"]').removeClass('error');
+		$(this).find('textarea[name="message"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+
+		if ($(this).find('input[name="email"]').val() == "") {
+			$(this).find('input[name="email"]').addClass('error');
+
+			error = true;
+		} else {
+			$(this).find('input[name="email"]').addClass('success');
+		}
+
+
+		if ($(this).find('textarea[name="message"]').val() == "") {
+			$(this).find('textarea[name="message"]').addClass('error');
+
+			error = true;
+		} else {
+			$(this).find('textarea[name="message"]').addClass('success');
+		}
+
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('#popup-message div.popup-content').html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+
+	$('body').on("submit", "form.callback", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		var self = this;
+		try {
+			ga(function(tracker) {
+				var clientId = tracker.get('clientId');
+
+				$(self).find('input[name="clientId"]').val(clientId);
+			});
+
+		} catch (err) {
+
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var mobilePhone = $(this).find('input[name="phone"]').val();
+		var fullName = $(this).find('input[name="name"]').val();
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/form/callback/',
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				try {
+					mindbox("async", {
+					  operation: "RequesttoCallback",
+					  data: {
+						customer: {
+						  fullName: fullName,
+						  mobilePhone: mobilePhone,
+						  area: {
+							ids: {
+							  externalId: $('input[name="user-city"]').val()
+							}
+						  },
+						}
+					  }
+					});
+				} catch (err) {
+
+				}
+
+				$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	$('form.cart__content input[name="phone"]').focusout(function(e){
+		e.preventDefault();
+		if ($(this).val() != '' && $(this).val() != '+_ (___) ___-__-__')
+		{
+			//alert($(this).val());
+		}
+	})
+
+	$('body').on("submit", "form.oneclick-form", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+
+		var self = this;
+		try {
+			ga(function(tracker) {
+				var clientId = tracker.get('clientId');
+
+				$(self).find('input[name="clientId"]').val(clientId);
+			});
+
+		} catch (err) {
+
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/form/oneclick/',
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+
+
+	$('div.category-box').on("click", ".review-in-grid__btn", function(ev) {
+		ev.preventDefault();
+
+		var self = this;
+		$.ajax({
+			method: "GET",
+			url: '/form/reviews/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.review !== '')
+			{
+				var review = $(response.review);
+				var found = $('.category-box__in', review);
+				$(self).parent().parent().html(found);
+			}
+		});
+
+	});
+
+	$('#popup-city ul.popup-city__list,#popup-city ul.popup-city__form-citylist').on("click", "li a", function(ev) {
+		ev.preventDefault();
+
+		var city = $(this).data('city');
+		// window.location.href
+		// window.location.href = window.location.href + '?city=' + city;
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/form/changecity/',
+			dataType: 'json',
+			data: { city: city, action: 'change-city'}
+		}).done(function(response) {
+			if (response.url == '')
+			{
+				window.location.href = location.protocol + '//' + location.host + location.pathname;
+			} else {
+				window.location.href = location.protocol + '//' + response.url + location.pathname;
+			}
+		});
+
+	});
+
+	$('#popup-city-choose').on("keyup", '.inputbox', function() {
+		var filter = $(this).val();
+
+		var showed = false;
+
+		$("#popup-city-choose ul li").each(function () {
+			if ($(this).text().search(new RegExp(filter, "i")) < 0) {
+				$(this).hide();
+			} else {
+				$(this).show();
+
+				showed = true;
+			}
+		});
+
+		if (showed === true)
+		{
+			$('.delivery-rus-text').css('display','none');
+		} else {
+			$('.delivery-rus-text').css('display','block');
+		}
+
+	});
+
+	$('#popup-city').on("keyup", '.inputbox', function() {
+		var filter = $(this).val();
+
+		var showed = false;
+
+		$("#popup-city ul li").each(function () {
+			if ($(this).text().search(new RegExp(filter, "i")) < 0) {
+				$(this).hide();
+			} else {
+				$(this).show();
+
+				showed = true;
+			}
+		});
+
+		if (showed === true)
+		{
+			$('.delivery-rus-text').css('display','none');
+		} else {
+			$('.delivery-rus-text').css('display','block');
+		}
+	});
+
+	$('#contact-list').on("keyup", '.inputbox', function() {
+		var filter = $(this).val();
+
+		$("#contact-spisok ul li").each(function () {
+			if ($(this).text().search(new RegExp(filter, "i")) < 0) {
+				$(this).hide();
+			} else {
+				$(this).show();
+			}
+		});
+
+	});
+
+
+	$('body').on("submit", "form.order-status-form", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+		$(this).find('input[name="order_number"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="order_number"]').val() == "") {
+			$(this).find('input[name="order_number"]').addClass('error');
+			$(this).find('input[name="order_number"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			//$(this).find('input[name="order_number"]').addClass('success');
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			$(self).find('input[name="order_number"]').parent().find('.error-text').remove();
+			if (response.status == 'Success')
+			{
+				$('div.order-status-content').find('div.order-status-view').html(response.view);
+				//$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				//$(self).find('input[name="order_number"]').parent().append('<div class="error-text">Сервис временно недоступен.</div>');
+				$(self).find('input[name="order_number"]').parent().append('<div class="error-text">Информация по заказу не найдена</div>');
+				$(self).find('input[name="order_number"]').addClass('error');
+				//$('div.order-status-content').find('div.order-status-view').html('Информация по заказу не найдена.');
+				//$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	$('div.sale-subscribe__form-inputs, div.footer__subscribe').on("submit", "form", function(ev) {
+		ev.preventDefault();
+
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="email"]').removeClass('error');
+
+		error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+			error = true;
+		}
+
+		if ($(this).find('input[name="email"]').val() == "") {
+			$(this).find('input[name="email"]').addClass('error');
+			$(this).find('input[name="email"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+			error = true;
+		}
+
+		if ($(this).find('input[name="you_shall_not_pass"]').val() === "false" && error === false)
+		{
+			$(this).find('.inputbox-wrap').css('display','none');
+			$(this).find('button').css('display','none');
+			$(this).append('<div class="inputbox-wrap"><div id="you_shall_not_pass_footer"></div><script src="https://www.google.com/recaptcha/api.js?onload=onloadGreFooter&render=explicit" async defer></script><button type="submit" class="btn btn-wide footer__subscribe-btn"><i class="icon icon-check"></i>Подписаться!</button></div>');
+			$(this).find('input[name="you_shall_not_pass"]').val('true');
+
+			error = true;
+		}
+
+		var type = $(this).find('input[name="type"]').val();
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var fullName = $(this).find('input[name="name"]').val();
+		var email = $(this).find('input[name="email"]').val();
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				if (type == 'sale')
+				{
+					try {
+						mindbox("async", {
+						  operation: "SubscriptionOnMain",
+						  data: {
+							customer: {
+							  fullName: fullName,
+							  area: {
+								ids: {
+								  externalId: $('input[name="user-city"]').val()
+								}
+							  },
+							  email: email,
+							  subscriptions: [
+								{
+								  brand: "Velostrana",
+								  pointOfContact: "Email",
+								  topic: "Main"
+								}
+							  ]
+							}
+						  }
+						})
+					} catch (err) {
+
+					}
+					$(self).html('<div class="sale-subscribe__thanks"><i class="icon icon-check-blue"></i>Спасибо за подписку!</div><p>Совсем скоро мы отправим Вам приветственное письмо. Не забудьте добавить нас в адресную книгу ;)</p>');
+				}
+
+				if (type == 'footer')
+				{
+					try {
+						mindbox("async", {
+						  operation: "SubscriptionOnFooter",
+						  data: {
+							customer: {
+							  fullName: fullName,
+							  area: {
+								ids: {
+								  externalId: $('input[name="user-city"]').val()
+								}
+							  },
+							  email: email,
+							  subscriptions: [
+								{
+								  brand: "Velostrana",
+								  pointOfContact: "Email",
+								  topic: "Main"
+								}
+							  ]
+							}
+						  }
+						});
+					} catch (err) {
+
+					}
+					$(self).html('<div class="footer-subscribe__thanks"><i class="icon icon-check"></i>Спасибо за подписку!</div><p>Совсем скоро мы отправим Вам приветственное письмо. Не забудьте добавить нас в адресную книгу ;)</p>');
+				}
+
+			} else {
+				if (type == 'sale')
+				{
+					$(self).html('<div class="sale-subscribe__thanks">' + response.error + '</div>');
+				}
+
+				if (type == 'footer')
+				{
+					$(self).html('<div class="footer-subscribe__thanks">' + response.error + '</div>');
+				}
+			}
+		});
+	});
+
+
+	// cart work
+	$('body').on("click", 'a[data-action="add_cart"]', function(ev) {
+		ev.preventDefault();
+
+
+		try { rrApi.addToBasket($(this).data('id'))} catch(e) {}
+
+		var data = {};
+
+		if ($('input[name="color"]:checked').val() != "" && $('input[name="color"]:checked').val() != 'undefined') {
+			data = { variant_id: $('input[name="color"]:checked').val() };
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/cart/add/' + $(this).data('id') + '/',
+			dataType: 'json',
+			data: data
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('html').addClass('popup-open');
+				$('body').append(response.html);
+				$('.topmenu__cart b').html('('+ response.product_items + ')');
+
+				try {
+					ga('create', 'UA-5040153-1', 'auto');
+
+					ga('ec:addProduct', {
+						'id': response.product.id,
+						'name': response.product.name,
+						'category': response.product.category,
+						'brand': response.product.brand,
+						'price': response.product.price,
+						'quantity': response.product.qty
+					});
+
+					ga('send', 'event', 'UX', 'click', 'add to cart'); // Отправка данных
+				} catch (e) {
+				}
+
+				try {
+					if (response.product.type_id == 1)
+					{
+						yaCounter143743.reachGoal('ORDER_BASKET');
+					}
+
+					if (response.product.type_id == 2)
+					{
+						yaCounter143743.reachGoal('MODEL_VELOAKSESSUARY');
+					}
+
+					if (response.product.type_id == 3)
+					{
+						yaCounter143743.reachGoal('MODEL_VELOZAPCHASTI');
+					}
+
+					if (response.product.type_id == 4)
+					{
+						yaCounter143743.reachGoal('MODEL_VELOEKIPIROVKA');
+					}
+
+					if (response.product.type_id == 5)
+					{
+						yaCounter143743.reachGoal('MODEL_VELOINSTRUMENTY');
+					}
+				} catch (e) {
+				}
+
+				// response.product
+			} else {
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	// cart work
+	$('body').on("click", 'input[data-action="add_compare"]', function(ev) {
+		//ev.preventDefault();
+
+		var action = '';
+		var action_url = '';
+		if ($(this).is(':checked')) {
+			action_url = '/favorites/add/' + $(this).data('id') + '/';
+			action = 'add';
+		} else {
+			action_url = '/favorites/remove/' + $(this).data('id') + '/';
+			action = 'remove';
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: action_url,
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				if (action == 'add')
+				{
+					//$('html').addClass('popup-open');
+					$('html').addClass('popup-open');
+					$('body').append(response.html);
+					//$('body').append(response.html);
+					$('.topmenu__fav b').html('('+ response.product_items + ')');
+				}
+			} else {
+				ev.preventDefault();
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	// cart work
+	$('body').on("click", 'a[data-action="add_compare"]', function(ev) {
+		ev.preventDefault();
+
+		var action = '';
+		var action_url = '';
+		if ($(this).is('.added')) {
+			action_url = '/favorites/remove/' + $(this).data('id');
+			action = 'remove';
+			$(this).removeClass('added');
+		} else {
+			action_url = '/favorites/add/' + $(this).data('id');
+			action = 'add';
+			$(this).addClass('added');
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: action_url,
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				if (action == 'add')
+				{
+					//$('html').addClass('popup-open');
+					$('html').addClass('popup-open');
+					$('body').append(response.html);
+					//$('body').append(response.html);
+					$('.topmenu__fav b').html('('+ response.product_items + ')');
+				}
+			} else {
+				ev.preventDefault();
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	// avaliabity
+	$('body').on("click", 'a[data-action="see_availability"]', function(ev) {
+		ev.preventDefault();
+
+		$('#popup-availability form.seeavailability-form input[name="token"]').val($('input[name="token-all"]').val());
+
+		$('#popup-availability .popup-form').css('display','block');
+		$('#popup-availability .popup-thanks').css('display','none');
+
+		$('#popup-availability').fadeIn(400);
+		$('#popup-availability').addClass('popup-open');
+
+		$('#popup-availability form.seeavailability-form input[name="product_id"]').val($(this).data('id'));
+	});
+
+	$('body').on("click", 'a.popup-sale__print', function(ev) {
+		ev.preventDefault();
+
+		var id_print = $(this).data('print');
+		var restorepage = $('body').html();
+		var printcontent = $('#' + id_print).clone();
+		$('body').empty().html(printcontent);
+		window.print();
+		$('body').html(restorepage);
+
+	});
+
+
+	$('body').on("submit", 'form.seeavailability-form', function(ev) {
+		ev.preventDefault();
+
+		var fullName = $(this).find('input[name="name"]').val();
+		var email = $(this).find('input[name="email"]').val();
+		var product_id = parseInt($(this).find('input[name="product_id"]').val(), 10);
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/form/seeavailability/',
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				try {
+					mindbox("async", {
+					  operation: "AddProductToInStockItemList",
+					  data: {
+						customer: {
+						  area: {
+							ids: {
+							  externalId: $('input[name="user-city"]').val()
+							}
+						  },
+						  fullName: fullName,
+						  email: email,
+						  subscriptions: [
+							{
+							  brand: "Velostrana",
+							  pointOfContact: "Email",
+							  topic: "Main",
+							  valueByDefault: true,
+							  isSubscribed: true
+							}
+						  ]
+						},
+						addProductToList: {
+						  product: {
+							ids: {
+							  website: product_id+1000000
+							}
+						  }
+						}
+					  }
+					});
+				} catch (err) {
+
+				}
+				$('#popup-availability .popup-thanks').html('<div class="form-success"><p>Спасибо!</p> Как только товар появится в наличии, мы Вас уведомим.</div>');
+				$('#popup-availability .popup-form').css('display','none');
+				$('#popup-availability .popup-thanks').css('display','block');
+			} else {
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	// add_credit
+	$('body').on("click", 'a[data-action="add_credit"]', function(ev) {
+		ev.preventDefault();
+
+		//if (confirm('Уважаемый покупатель! Каждая модель велосипеда выпускается в нескольких размерах рамы (в зависимости от роста – как, например, одежда). Прежде чем продолжить оформление кредита, уточните наличие нужного размера рамы у наших менеджеров по телефону: +7 (495) 787-22-33 или 8 (800) 100-22-33.')) {
+			var self = this;
+			$.ajax({
+				method: "POST",
+				url: '/cart/add/' + $(this).data('id') + '/',
+				dataType: 'json',
+				data: { payment: 'credit' }
+			}).done(function(response) {
+				if (response.status == 'Success')
+				{
+					location.href = '/cart/';
+				}
+				else
+				{
+					//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+				}
+			});
+		//}
+	});
+
+
+	$('body').on("click", 'a[data-action="price-popup"]', function(ev) {
+		ev.preventDefault();
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/pricepopup/' + $(this).data('id') + '/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('body').append(response.html);
+
+				$(self).fadeIn(400);
+				$('html').addClass('popup-open');
+
+			} else {
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+
+
+	$('body').on("click", 'a[data-action="analog"]', function(ev) {
+		ev.preventDefault();
+
+		var self = this;
+
+		$('.popup-analog').remove();
+
+		$.ajax({
+			method: "POST",
+			url: '/catalog/analog/' + $(this).data('id') + '/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('body').append(response.html);
+				$(self).fadeIn(400);
+				$('html').addClass('popup-open');
+
+				//$('body').append(response.html);
+
+			} else {
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+	});
+
+
+	$('body').on("submit", "form.analog-form", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/form/analog/',
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	// cart work
+	$('body').on("click", 'a[data-action="oneclick"]', function(ev) {
+		ev.preventDefault();
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/oneclick/' + $(this).data('id') + '/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('body').append(response.html);
+
+				$(self).fadeIn(400);
+				$('html').addClass('popup-open');
+
+				try {
+					window.criteo_q = window.criteo_q || []; window.criteo_q.push(
+						{ event: "setAccount", account: 39028 },
+						{ event: "setSiteType", type: "d" },
+						{ event: "setEmail", email: "Email" },
+						{ event: "trackTransaction", id: Math.random(), item: [ {id: $(self).data('id'), quantity: 1} ] }
+					);
+				} catch (e) {
+				}
+
+			} else {
+				//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	$('body').on("submit", "form.form-popup-price", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+		$(this).find('input[name="email"]').removeClass('error');
+		$(this).find('input[name="link"]').removeClass('error');
+		//$(this).find('input[name="price"]').removeClass('error');
+
+		$(this).find('div.error-text').remove();
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="email"]').val() == "") {
+			$(this).find('input[name="email"]').addClass('error');
+			$(this).find('input[name="email"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="email"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="rost"]').val() == "") {
+			$(this).find('input[name="rost"]').addClass('error');
+			$(this).find('input[name="rost"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="rost"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="link"]').val() == "") {
+			$(this).find('input[name="link"]').addClass('error');
+			$(this).find('input[name="link"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="link"]').addClass('success');
+		}
+
+		var self = this;
+		try {
+			ga(function(tracker) {
+				var clientId = tracker.get('clientId');
+
+				$(self).find('input[name="clientId"]').val(clientId);
+			});
+
+		} catch (err) {
+
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	$('body').on("click", 'a.popup-link-fast, a[data-action="simple_view"]', function(ev) {
+		ev.preventDefault();
+
+		var self = this;
+
+		$('.popup-product').remove();
+
+		var product_id = parseInt($(this).data('id'), 10);
+
+		if ($('.popup-product-'+product_id).length)
+		{
+
+			$('.popup-product-'+product_id).fadeIn(400);
+			$('html').addClass('popup-open');
+		} else {
+
+			$.ajax({
+				method: "POST",
+				url: '/catalog/simpleview/' + product_id + '/',
+				dataType: 'json',
+			}).done(function(response) {
+				if (response.status == 'Success')
+				{
+					mindbox("async", {
+					  operation: "ProductView",
+					  data: {
+						viewProduct: {
+						  product: {
+							ids: {
+							  website: product_id+1000000
+							}
+						  }
+						}
+					  }
+					});
+					$('body').append(response.html);
+					$(self).fadeIn(400);
+					$('html').addClass('popup-open');
+
+					//product-fast__thumbslider
+					$('.popup-product-'+product_id + ' .product-fast__thumbslider').slick({
+						dots: false,
+						infinite: false,
+						slidesToShow: 4,
+						slidesToScroll: 1,
+						autoplay: false,
+						speed: 250
+					});
+
+					//$('body').append(response.html);
+
+
+				} else {
+					//$('#popup-message div.popup-content').prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+				}
+			});
+		}
+	});
+
+
+	$('body').on("click", '.view-toggle', function(ev) {
+		var cat = $(this).closest('.category');
+		var viewClass = $(this).data('view');
+		cat.find(".view-toggle").not($('*[data-view="'+$(this).data('view')+'"]')).removeClass('active');
+		cat.find("."+viewClass+"-icon").addClass('active');
+		cat.find('#category-view').removeClass('category-newgrid').removeClass('category-list').addClass(viewClass);
+
+		if (viewClass == 'category-newgrid'){
+			cat.find('#category-view').removeClass('category-newgrid').removeClass('category-list').addClass(viewClass);
+		}
+
+		var view = $(this).data('view');
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { view_type: view }
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				catalog_update();
+			}
+		});
+
+	});
+
+
+	$('body').on("selectmenuchange", 'div.category__sort-order select#sort-b', function(ev, ui) {
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { order_by: $(this).val() }
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				catalog_update();
+			}
+		});
+	});
+
+	$('body').on("click", 'div.category__sort-order ul#sort-b li a', function(ev) {
+		ev.preventDefault();
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { order_by: $(this).attr('data-id') }
+		}).done(function(response) {
+			$('.select-menu__menu-select span').text($(self).text());
+			$('.select-menu__menu-select').toggleClass('open');
+			$('.select-menu__menu-select').next('.select-menu__menu-list').toggle();
+			if (response.status == 'Success')
+			{
+				catalog_update();
+			}
+		});
+	});
+
+	$('body').on("change", 'div.category__in-shop #shop', function(ev) {
+		var nalichie = 0;
+
+		if ($(this).is(':checked')) {
+			nalichie = 1;
+
+			$('div.category__in-shop #shop').attr('checked','checked');
+			$('div.filter-box__value .shop').attr('checked','checked');
+		} else {
+			$('div.category__in-shop #shop').removeAttr('checked');
+			$('div.filter-box__value .shop').removeAttr('checked');
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { nalichie: nalichie }
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				catalog_update();
+			}
+		});
+
+	});
+
+	$('body').on("change", 'div.category__in-shop #sale_search', function(ev) {
+		var nalichie = 0;
+
+		if ($('div.category__in-shop #shop').is(':checked'))
+		{
+			nalichie = 1;
+		}
+
+		var sale_search = 0;
+
+		if ($(this).is(':checked'))
+		{
+			sale_search = 1;
+			$('div.category__in-shop #sale_search').attr('checked','checked');
+		}
+		else
+		{
+			$('div.category__in-shop #sale_search').removeAttr('checked');
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { sale_search: sale_search, nalichie: nalichie }
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				catalog_update();
+			}
+		});
+
+	});
+
+	$('body').on("change", 'div.filter-box__value .shop', function(ev) {
+		var nalichie = 0;
+
+		if ($('div.filter-box__value .shop').is(':checked')) {
+			nalichie = 1;
+
+			$('div.category__in-shop #shop').attr('checked','checked');
+			$('div.filter-box__value .shop').attr('checked','checked');
+		} else {
+			$('div.category__in-shop #shop').removeAttr('checked');
+			$('div.filter-box__value .shop').removeAttr('checked');
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/settings/',
+			dataType: 'json',
+			data: { nalichie: nalichie }
+		}).done(function(response) {
+			update_filter(ev);
+		});
+
+	});
+
+	function catalog_update()
+	{
+		$.ajax({
+			method: 'GET',
+			url: location.href,
+			dataType: 'json'
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('div#category-view').html(response.html);
+				$('div.category__sort-nav--bottom div.category__sort-more').remove();
+				$('div.category__sort-nav--bottom').append(response.pagination_next);
+
+				$('div.pagination-bottom-show').html(response.pagination_pages);
+				//equalheight(".product-access");
+			}
+		});
+
+	}
+
+	$("body").on("click", "div.category__sort-more button.pagination-button-next", function(ev) {
+		ev.preventDefault();
+
+		if ($('.veloguru-result').length) {
+			return false;
+		}
+
+		if ($('.vip-result').length) {
+			return false;
+		}
+
+		var search = $('.category__search-input').val();
+		var page = $(this).data('page');
+
+		var url = location.href;
+
+		if (search !== "" && search != 'undefined' && typeof search != "undefined")
+		{
+			url = url + '?search='+search;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: url,
+			dataType: 'json',
+			data: { page: page }
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('div#category-view').append(response.html);
+				$('div.category__sort-nav--bottom div.category__sort-more').remove();
+				$('div.category__sort-nav--bottom').append(response.pagination_next);
+
+				$('div.pagination-bottom-show').html(response.pagination_pages);
+				//equalheight(".product-access");
+			}
+		});
+
+	});
+
+
+	$("#left-filter").on("change", 'form.form-filter input[type="checkbox"]', function(ev) {
+		loading_filter(ev);
+
+		if ($(ev.currentTarget).hasClass('shop'))
+		{
+
+		} else {
+			delay(function(){
+				update_filter(ev);
+			}, 500);
+		}
+		/*
+		delay(function(){
+			update_filter(ev);
+		}, 500);
+		*/
+	});
+	//$("#left-filter").on( "click", 'form.form-filter ul.checkbox-list li', update_filter );
+
+	//$("#left-filter").on( "click", 'form.form-filter .inputbox', update_filter );
+
+	//$("#left-filter").on( "keypress", 'form.form-filter input[type="text"]', update_filter );
+
+	$("#left-filter").on("keyup", 'form.form-filter input[type="text"]', function(ev) {
+		// update_filter(ev);
+
+		delay(function(){
+			update_filter(ev);
+		}, 1000);
+	});
+
+	$("#left-filter").on("slidechange", '.filter-slider', function(ev) {
+
+		update_filter(ev);
+
+		/*
+		delay(function(){
+			update_filter(ev);
+		}, 1000);
+		*/
+	});
+
+	//$("#left-filter").on( "change", 'select', update_filter );
+	//$("#left-filter").on( "keypress", '.inputbox', update_filter );
+	//$("#left-filter").on( "keyup", '.inputbox', update_filter );
+	//$("#left-filter").on( "click", 'ul.checkbox-list li', update_filter );
+
+
+	$('body').on("click", 'a.filter__res-link', function(ev) {
+		ev.preventDefault();
+
+		$("form.form-filter").submit();
+	});
+
+	function loading_filter(ev)
+	{
+		var pos = $(ev.currentTarget).closest("li");
+		var position = pos.position();
+		if (typeof position == 'undefined') { pos = $(ev.currentTarget).closest("div"); position = pos.position(); }
+
+		$('div.filter-cnt-event').html('<div class="filter__show-res"><div class="filter__show-res-c"><img src="/assets/images/preloader.gif"</div></div>');
+		var height = $('div.filter__show-res').height();
+		$('div.filter__show-res').css('top',position.top - (height/2));
+	}
+
+	function update_filter(ev)
+	{
+		//ev.preventDefault();
+		var pos = $(ev.currentTarget).closest("li");
+		var position = pos.position();
+		if (typeof position == 'undefined') { pos = $(ev.currentTarget).closest("div"); position = pos.position(); }
+
+		loading_filter(ev);
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: '/catalog/filter/',
+			dataType: 'json',
+			data: $("form.form-filter").serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+
+				$('span.filter__result-num span.filter-count').html(response.count);
+
+				$('div.filter-cnt-event').html(response.hint);
+
+				var height = $('div.filter__show-res').height();
+				$('div.filter__show-res').css('top',position.top - (height/2));
+
+				$('form.form-filter').attr('action','/podbor-velosipeda/?k=' + response.form_key);
+				/*
+				$('#left-filter').zhtml(response.filter, function() {
+					$('span.filter__result-num span.filter-count').html(response.count);
+
+					$('div.filter-cnt-event').html(response.hint);
+
+					var height = $('div.filter__show-res').height();
+					$('div.filter__show-res').css('top',position.top - (height/2));
+
+					$('form.form-filter').attr('action','/podbor-velosipeda/?k=' + response.form_key);
+
+					$( ".filter-slider" ).each(function() {
+						var max = parseInt($( this ).data('max'), 10);
+						var min = parseInt($( this ).data('min'), 10);
+						var from = parseInt($( this ).data('from'), 10);
+						var to = parseInt($( this ).data('to'), 10);
+						$( this ).slider({
+							range: true,
+							min: min,
+							max: max,
+							values: [ from, to ],
+							slide: function( event, ui ) {
+								$(this).closest(".filter-box__value").find( ".filter-slider-from" ).val( ui.values[ 0 ]);
+								$(this).closest(".filter-box__value").find( ".filter-slider-to" ).val( ui.values[ 1 ]);
+							}
+						});
+					});
+
+					try {
+
+						var filterSlider = $( ".filter-box--price. filter-slider" );
+						var from = parseInt(filterSlider.data('from'), 10);
+						var to = parseInt(filterSlider.data('to'), 10);
+						filterSlider.slider('values', 0, from);
+						filterSlider.slider('values', 1, to);
+					} catch (err) {
+
+					}
+
+				});
+				*/
+			} else {
+
+			}
+		});
+	}
+
+	/*
+	$("body").bind("append", function(ev) {
+		if ($('div.many-onion').next().next().attr('class') != "" && !$('div.many-onion').next().next().hasClass('wrap-popup'))
+		{
+			//console.log($('div.many-onion').next());
+			$('div.many-onion').next().next().html('');
+		}
+	});
+*/
+/*
+	$('html').bind('change', function(event) {
+		explodeMarket();
+		setTimeout(explodeMarket, 4000);
+	});
+*/
+
+	var firstMarket, observerConfig, firstMarketObserver;
+
+	firstMarket = $("html");
+	observerConfig = {
+		attributes: true,
+		childList: true,
+		characterData: true
+	};
+	firstMarketObserver = new MutationObserver(function (mutations) {
+		mutations.forEach(function (mutation) {
+			var newVal = $(mutation.target).prop(mutation.attributeName);
+			if (mutation.attributeName === "style") {
+
+				//console.log("MutationObserver style changed to", newVal);
+
+				if (newVal[0] == 'margin-top')
+				{
+					explodeMarket();
+					setTimeout(explodeMarket, 2000);
+					// console.log('siov');
+				}
+			}
+		});
+	});
+
+	firstMarketObserver.observe(firstMarket[0], observerConfig);
+	// later, you can stop observing
+	//observer.disconnect();
+
+	firstMarket.on("DOMAttrModified", function (e) {
+		var newVal = $(this).prop(e.originalEvent.attrName);
+		// console.log("DOMAttrModified", e.originalEvent.attrName, "changed to", newVal);
+	});
+
+
+});
+
+function explodeMarket()
+{
+	/*
+		console.log('Not removed!');
+		console.log($(".af").next());
+		console.log($(".af").next().next());
+		console.log($(".af").next().next().next());
+		console.log($(".af").next().next().next().next());
+		console.log($(".af").next().next().next().next().next());
+		console.log($(".af").next().next().next().next().next().next());
+	*/
+
+	if ($(".af").next().next().next().next()[0] = 'style')
+	{
+		console.log('Removed! z');
+
+		$(".af").next().next().next().next().remove();
+		$(".af").next().next().next().next().next().remove();
+		$('html').removeAttr('style');
+	}
+
+	if ($(".af").next().next().next()[0] = 'style')
+	{
+		console.log('Removed! z');
+
+		$(".af").next().next().next().remove();
+		$(".af").next().next().next().next().remove();
+		$('html').removeAttr('style');
+	}
+
+	if ($(".af").next().next()[0] = 'style')
+	{
+		console.log('Removed! z');
+
+		$(".af").next().next().remove();
+		$(".af").next().next().next().remove();
+		$('html').removeAttr('style');
+	}
+}
+
+/*
+(function($) {
+	var origAppend = $.fn.append;
+
+	$.fn.append = function () {
+		return origAppend.apply(this, arguments).trigger("append");
+	};
+})(jQuery);
+*/
+
+var delay = (function(){
+  var timer = 0;
+  return function(callback, ms){
+  clearTimeout (timer);
+  timer = setTimeout(callback, ms);
+ };
+})();
+
+var htmlOriginal = $.fn.html;
+$.fn.zhtml = function(html,callback){
+  // run the old `.html()` function with the first parameter
+  var ret = htmlOriginal.apply(this, arguments);
+  // run the callback (if it is defined)
+  if (typeof callback == "function"){
+	callback();
+  }
+  // make sure chaining is not broken
+  return ret;
+};
+
+/*
+// fix jquery lazy
+// create a reference to the old `.html()` function
+var htmlOriginal = $.fn.html;
+
+// redefine the `.html()` function to accept a callback
+$.fn.html = function(html,callback){
+  // run the old `.html()` function with the first parameter
+  var ret = htmlOriginal.apply(this, arguments);
+  // run the callback (if it is defined)
+  if (typeof callback == "function"){
+	callback();
+  }
+  // make sure chaining is not broken
+  return ret;
+};
+*/

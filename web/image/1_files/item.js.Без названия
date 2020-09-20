@@ -1,0 +1,311 @@
+$(function() {
+
+	$('body').on("click", "div.productfull__acc-link", function(ev) {
+
+		if ($(this).data('type') != "")
+		{
+			ev.preventDefault();
+
+			var self = this;
+			$.ajax({
+				method: "POST",
+				url: $(this).attr('href'),
+				dataType: 'html',
+				data: { 'type': $(this).data('type') }
+			}).done(function(html) {
+				$('div.productfull__tab#'+$(self).data('type')).html(html);
+			});
+
+		}
+
+	});
+
+	$('body').on('click', '.productfull__tab-link:not(.js-access-link)', function (e) {
+		e.preventDefault();
+
+		if ($(this).attr('data-ax') != "" && $(this).attr('data-ax') !== undefined)
+		{
+			var tab = $(this).attr('data-ax');
+			$('.productfull__tab-link').not(this).parent('li').removeClass('active');
+			$(this).parent('li').addClass('active');
+			$(".productfull__tab:not(#"+tab+")").hide().removeClass('active');
+			$('#' + tab).show().addClass('active');
+
+			var self = this;
+			$.ajax({
+				method: "GET",
+				url: $('input[name="href"]').val() + "?type=" + $(this).attr('data-ax'),
+				dataType: 'html',
+			}).done(function(html) {
+				if ($('div.productfull__tab#'+$(self).attr('data-ax')).length > 0)
+				{
+					$('div.productfull__tab#'+$(self).attr('data-ax')).html(html);
+				} else {
+					$('div.productfull__tabs').append('<div class="productfull__tab tab-item acc-box" id="' + $(self).attr('data-ax') + '">' + html + '</div>');
+				}
+
+				$('#' + tab).show().addClass('active');
+			});
+		} else {
+			var tab = $(this).attr('href');
+
+			if ($(this).hasClass('reviews'))
+			{
+				tab = '#reviews';
+			}
+
+			$('.productfull__tab-link').not(this).parent('li').removeClass('active');
+			$(this).parent('li').addClass('active');
+			$(".productfull__tab:not("+tab+")").hide().removeClass('active');
+			$(tab).show().addClass('active');
+		}
+
+		//if (tab == '#complect') {
+		//	equalheight(".prodcomplect__i-name");
+		//}
+	});
+
+	$('body').on('click', '.js-access-link', function (e) {
+		e.preventDefault();
+
+		if ($('#productfull-related').length) {
+			$('html, body').stop().animate({
+				scrollTop: ($('#productfull-related').offset().top)
+			}, 700, 'easeOutQuad');
+		}
+	});
+
+	$('body').on('click', '.productfull__stock-i', function (e) {
+		$('.productfull__stock-i').not(this).removeClass('is-selected');
+		$(this).addClass('is-selected');
+	});
+
+
+
+	// cart work
+	$('body').on("click", 'a[data-action="popup_services"]', function(ev) {
+		ev.preventDefault();
+
+		//$('#popup-services').fadeIn(400);
+		//$('html').addClass('popup-open');
+
+		//$('#popup-services').find('input[name="services"]').val($(this).data('id'));
+		//$('#popup-services').find('.popup-pickup-order__bike-name').html($(this).parent().parent().find('h4').html());
+		//$('#popup-services').find('.popup-pickup-order__bike-price').html($(this).data('price') + '<span class="rub-hidden">руб.</span><span class="rub-font">c</span>');
+
+		var self = this;
+		$.ajax({
+			method: "GET",
+			url: '/catalog/services/' + $(this).data('id') + '/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('html').addClass('popup-open');
+				$('body').append(response.html);
+				$(".tel-mask").mask("+9 (999) 999-99-99");
+			} else {
+				ev.preventDefault();
+			}
+		});
+
+	});
+
+	// cart work
+	$('body').on("click", 'a[data-action="popup_booking"]', function(ev) {
+		ev.preventDefault();
+
+		//$('#popup-services').fadeIn(400);
+		//$('html').addClass('popup-open');
+
+		//$('#popup-services').find('input[name="services"]').val($(this).data('id'));
+		//$('#popup-services').find('.popup-pickup-order__bike-name').html($(this).parent().parent().find('h4').html());
+		//$('#popup-services').find('.popup-pickup-order__bike-price').html($(this).data('price') + '<span class="rub-hidden">руб.</span><span class="rub-font">c</span>');
+
+		var self = this;
+		$.ajax({
+			method: "GET",
+			url: '/catalog/booking/' + $(this).data('id') + '/',
+			dataType: 'json',
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('html').addClass('popup-open');
+				$('body').append(response.html);
+				$(".tel-mask").mask("+9 (999) 999-99-99");
+			} else {
+				ev.preventDefault();
+			}
+		});
+
+	});
+
+
+	$('body').on("submit", "form.booking-form", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Вы не указали имя</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Укажите пожалуйста телефон</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		var self = this;
+		try {
+			ga(function(tracker) {
+				var clientId = tracker.get('clientId');
+
+				$(self).find('input[name="clientId"]').val(clientId);
+			});
+
+		} catch (err) {
+
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$('#popup-pickup-order .popup-container').html(response.html);
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+	$('body').on("submit", "form.masterform-order", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Вы не указали имя</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Укажите пожалуйста телефон</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		var self = this;
+		try {
+			ga(function(tracker) {
+				var clientId = tracker.get('clientId');
+
+				$(self).find('input[name="clientId"]').val(clientId);
+			});
+
+		} catch (err) {
+
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$(self).parent().parent().parent().html('<div class="popup-header"><div class="popup-icon"><i class="icon icon-popup-check"></i></div><h3>Спасибо!</h3><p><strong>Менеджер свяжется с Вами для уточнения деталей бронирования</strong></p></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+
+
+});
+
+// JavaScript Document
+$(function() {
+	if (typeof map_init !== "undefined")
+	{
+		ymaps.ready(map_init);
+	}
+	$("body").on('loadmap', function (event) {
+		var apis = [];
+		$('.contact-mapbox__list').each(
+			function()
+			{
+				apis.push($(this).jScrollPane({mouseWheelSpeed: 20}).data().jsp);
+			}
+		)
+		//js-contact-map
+		$("body").on('click', ".js-contact-view-toggle", function(e){
+			var view = $(this).data('view');
+
+			$(".js-contact-view").hide();
+			$('#contact-'+view).show();
+			$(".js-contact-view-toggle").not(this).removeClass('is-active');
+			$(this).addClass('is-active');
+
+			if (apis.length) {
+				$.each(
+					apis,
+					function(i) {
+						this.destroy();
+					}
+				)
+				apis = [];
+			}
+			$('.contact-mapbox__list').each(
+				function()
+				{
+					apis.push($(this).jScrollPane({mouseWheelSpeed: 20}).data().jsp);
+				}
+			)
+		});
+	});
+});

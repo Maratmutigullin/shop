@@ -1,0 +1,79 @@
+$(function() {
+
+	if ($('#tab-default-select').val() != "")
+	{
+		$('.tabs').tabs("option", "active", parseInt($('#tab-default-select').val()));
+	}
+
+	$('body').on("submit", "form.feedback-full", function(ev) {
+		ev.preventDefault();
+
+		$(this).find('input[name="token"]').val($('input[name="token-all"]').val());
+
+		$(this).find('input[name="name"]').removeClass('error');
+		$(this).find('input[name="phone"]').removeClass('error');
+		//$(this).find('input[name="email"]').removeClass('error');
+		$(this).find('textarea[name="message"]').removeClass('error');
+
+		$(this).find('div.error-text').remove();
+
+		var error = false;
+
+		if ($(this).find('input[name="name"]').val() == "") {
+			$(this).find('input[name="name"]').addClass('error');
+			$(this).find('input[name="name"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="name"]').addClass('success');
+		}
+
+		if ($(this).find('input[name="phone"]').val() == "") {
+			$(this).find('input[name="phone"]').addClass('error');
+			$(this).find('input[name="phone"]').parent().append('<div class="error-text">Неверный формат поля</div>');
+
+			error = true;
+		} else {
+			$(this).find('input[name="phone"]').addClass('success');
+		}
+
+		/*
+		if ($(this).find('input[name="email"]').val() == "") {
+			$(this).find('input[name="email"]').addClass('error');
+			$(this).find('input[name="email"]').next().append('<div class="error-text">Неверный формат поля</div>');
+
+			return false;
+		}
+		*/
+
+		if ($(this).find('textarea[name="message"]').val() == "") {
+			$(this).find('textarea[name="message"]').addClass('error');
+			$(this).find('textarea[name="message"]').parent().append('<div class="error-text">Напишите что-нибудь</div>');
+
+			error = true;
+		} else {
+			$(this).find('textarea[name="message"]').addClass('success');
+		}
+
+		if (error === true)
+		{
+			return false;
+		}
+
+		var self = this;
+		$.ajax({
+			method: "POST",
+			url: $(this).attr('action'),
+			dataType: 'json',
+			data: $(this).serialize()
+		}).done(function(response) {
+			if (response.status == 'Success')
+			{
+				$(self).html('<div class="form-success"><p>Спасибо!<br>Мы обязательно перезвоним вам в ближайшее время!</p><button type="submit" class="btn btn-transparent btn-wide btn-close-popup">Закрыть</button></div>');
+			} else {
+				$(self).prepend('<div class="alert alert-danger">Ошибка отправки формы.</div>');
+			}
+		});
+
+	});
+});
