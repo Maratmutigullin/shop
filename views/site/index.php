@@ -1,18 +1,20 @@
 
-<div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
+
+
+
+<div id="carouselExampleSlidesOnly" class="container carousel slide" data-ride="carousel">
     <div class="carousel-inner d-flex">
         <div class="carousel-item active">
-            <img src="image/ban1.jpg" class="d-block w-100 " alt="...">
+            <img src="image/ban1.jpg" class="d-block w-100 " alt="Реклама">
         </div>
         <div class="carousel-item">
-            <img src="imge/ban2.jpg" class="d-block w-100 " alt="...">
+            <img src="image/ban2.jpg" class="d-block w-100 " alt="Реклама">
         </div>
         <div class="carousel-item">
-            <img src="image/ban3.jpg" class="d-block w-100 " alt="...">
+            <img src="image/ban3.jpg" class="d-block w-100 " alt="Реклама">
         </div>
     </div>
 </div>
-
 
 <section class="main mt-4 stocks">
     <h2 class="text-center">Хиты продаж</h2>
@@ -117,16 +119,28 @@ bike_text text-center">Горный велосипед
 </section> <!-- /хиты продаж моб весия -->
 
 
-<div class="container">
-    <div class="email row mb-4 mt-5 justify-content-sm-center">
-        <div class="col-6 email_item " >
-            <label class="" for=""><img src="image/mail.png" alt="" width="35">Унай о всех акциях первым</label>
+<div class="container mt-5">
+    <div class="row mt-5 d-flex justify-content-center">
+        <div class="col-6">
+            <nav class="navbar bg-white justify-content-start ">
+                <label class="" for=""><img src="image/mail.png" alt="" width="35">Унай о всех акциях первым</label>
+            </nav>
         </div>
-
-        <div class="email_inp col-6 d-flex justify-content-end">
-            <input type="email" placeholder="введите свою почту">
-            <button class="email_btn" >Подписаться</button>
+        <div class="col-6">
+            <nav class="navbar navbar bg-white">
+                <form class="form-inline">
+                    <input class="form-control mr-sm-2" type="search" placeholder="e-mail" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Подписаться</button>
+                </form>
+            </nav>
         </div>
 
     </div>
 </div> <!-- /подписаться на почту -->
+
+
+
+
+<!--Вывод категории товаров-->
+
+

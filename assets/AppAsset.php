@@ -21,15 +21,16 @@ class AppAsset extends AssetBundle
     public $baseUrl = '@web';
     public $css = [
         'css/style.css'
-
     ];
     public $js = [
-        'https://code.jquery.com/jquery-3.4.1.slim.min.js',
-        'https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js',
-        'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js'
+        'js/main.js',
+        'js/jquery.cookie.js',
+        'js/jquery.dcjqaccordion.2.7.js',
+        'js/jquery-ui-1.12.1/jquery-ui.min.js',
     ];
+   public $jsOptions = ['position' => \yii\web\View::POS_HEAD,];
     public $depends = [
         'yii\web\YiiAsset',
-        'yii\bootstrap\BootstrapAsset',
+        'yii\bootstrap\BootstrapPluginAsset',
     ];
 }

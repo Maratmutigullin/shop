@@ -32,7 +32,7 @@ class SiteController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'logout' => ['post'],
+                    'logout' => ['post','get'],
                 ],
             ],
         ];
@@ -124,5 +124,16 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    public function actionHello(){
+        return $this->render('Hello');
+    }
+
+
+    public function actionDelivery(){
+        return $this->render('delivery');
+    }
+    public function actionService(){
+        return $this->render('service');
     }
 }
